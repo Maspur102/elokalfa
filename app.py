@@ -3,6 +3,7 @@ import json
 from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.exc import IntegrityError # <-- TAMBAHAN PENTING
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import func
@@ -90,7 +91,6 @@ def allowed_file(filename):
 
 @app.context_processor
 def inject_store_info():
-    # Tambahkan try-except untuk mencegah error saat tabel belum siap
     try:
         return dict(info=StoreInfo.query.first())
     except:
@@ -327,15 +327,24 @@ def struk(no_faktur):
     trx = Transaction.query.filter_by(no_faktur=no_faktur).first_or_404()
     return render_template('invoice.html', trx=trx)
 
-# --- INISIALISASI DB (DIPINDAH KELUAR MAIN) ---
-# Ini akan dijalankan otomatis oleh Gunicorn saat aplikasi start
+# --- INISIALISASI DB YANG AMAN (ANTI CRASH) ---
 with app.app_context():
     db.create_all()
-    if not User.query.first():
-        print("--- Membuat User Admin Default ---")
-        hashed_pw = generate_password_hash('admin123', method='pbkdf2:sha256')
-        db.session.add(User(username='admin', password=hashed_pw, role='admin'))
-        db.session.commit()
+    
+    # Cek apakah admin sudah ada?
+    existing_admin = User.query.filter_by(username='admin').first()
+    
+    if not existing_admin:
+        try:
+            print("--- Membuat User Admin Default ---")
+            hashed_pw = generate_password_hash('admin123', method='pbkdf2:sha256')
+            new_admin = User(username='admin', password=hashed_pw, role='admin')
+            db.session.add(new_admin)
+            db.session.commit()
+        except IntegrityError:
+            # Jika error karena user sudah dibuat oleh worker lain, rollback dan abaikan
+            db.session.rollback()
+            print("User admin sudah ada (dibuat oleh worker lain).")
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
