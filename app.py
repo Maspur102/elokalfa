@@ -59,16 +59,12 @@ class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     no_faktur = db.Column(db.String(50), unique=True, nullable=False)
     tanggal = db.Column(db.DateTime, default=datetime.now)
-    
-    # --- KOLOM BARU: NAMA PELANGGAN ---
     customer_name = db.Column(db.String(100), default='Umum') 
-    
     total_bayar = db.Column(db.Integer, nullable=False)
     uang_diterima = db.Column(db.Integer, nullable=False)
     kembalian = db.Column(db.Integer, nullable=False)
     payment_method = db.Column(db.String(20), default='Cash')
     proof_image = db.Column(db.String(255), nullable=True)
-    
     details = db.relationship('TransactionDetail', backref='transaction', lazy=True)
 
 class TransactionDetail(db.Model):
@@ -94,7 +90,11 @@ def allowed_file(filename):
 
 @app.context_processor
 def inject_store_info():
-    return dict(info=StoreInfo.query.first())
+    # Tambahkan try-except untuk mencegah error saat tabel belum siap
+    try:
+        return dict(info=StoreInfo.query.first())
+    except:
+        return dict(info=None)
 
 # --- ROUTES ---
 
@@ -234,10 +234,7 @@ def proses_bayar():
         keranjang = json.loads(request.form['keranjang'])
         total_bayar = int(request.form['total_bayar'])
         payment_method = request.form['payment_method']
-        
-        # AMBIL NAMA PELANGGAN (Default: Umum jika kosong)
-        customer_name = request.form.get('customer_name', '').strip()
-        if not customer_name: customer_name = 'Umum'
+        customer_name = request.form.get('customer_name', '').strip() or 'Umum'
 
         if payment_method == 'Transfer':
             uang_diterima = total_bayar
@@ -257,12 +254,10 @@ def proses_bayar():
                 return json.dumps({'status': 'error', 'message': 'Wajib upload bukti transfer!'}), 400
 
         no_faktur = "TRX-" + datetime.now().strftime("%Y%m%d-%H%M%S")
-        
-        # SIMPAN TRANSAKSI DENGAN NAMA PELANGGAN
         new_trx = Transaction(
             no_faktur=no_faktur,
             tanggal=datetime.now(),
-            customer_name=customer_name, # Simpan di sini
+            customer_name=customer_name,
             total_bayar=total_bayar,
             uang_diterima=uang_diterima,
             kembalian=kembalian,
@@ -278,13 +273,7 @@ def proses_bayar():
                 if product.stock < int(item['qty']):
                     return json.dumps({'status': 'error', 'message': f'Stok {product.name} kurang!'}), 400
                 product.stock -= int(item['qty'])
-                db.session.add(TransactionDetail(
-                    transaction_id=new_trx.id,
-                    product_name=product.name,
-                    qty=int(item['qty']),
-                    price=int(item['price']),
-                    subtotal=int(item['qty']) * int(item['price'])
-                ))
+                db.session.add(TransactionDetail(transaction_id=new_trx.id, product_name=product.name, qty=int(item['qty']), price=int(item['price']), subtotal=int(item['qty']) * int(item['price'])))
         
         db.session.commit()
         return json.dumps({'status': 'success', 'no_faktur': no_faktur})
@@ -338,11 +327,15 @@ def struk(no_faktur):
     trx = Transaction.query.filter_by(no_faktur=no_faktur).first_or_404()
     return render_template('invoice.html', trx=trx)
 
+# --- INISIALISASI DB (DIPINDAH KELUAR MAIN) ---
+# Ini akan dijalankan otomatis oleh Gunicorn saat aplikasi start
+with app.app_context():
+    db.create_all()
+    if not User.query.first():
+        print("--- Membuat User Admin Default ---")
+        hashed_pw = generate_password_hash('admin123', method='pbkdf2:sha256')
+        db.session.add(User(username='admin', password=hashed_pw, role='admin'))
+        db.session.commit()
+
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-        if not User.query.first():
-            hashed_pw = generate_password_hash('admin123', method='pbkdf2:sha256')
-            db.session.add(User(username='admin', password=hashed_pw, role='admin'))
-            db.session.commit()
     app.run(debug=True, host='0.0.0.0')
