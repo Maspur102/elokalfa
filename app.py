@@ -3,7 +3,7 @@ import json
 from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.exc import IntegrityError # <-- TAMBAHAN PENTING
+from sqlalchemy.exc import IntegrityError, OperationalError # <-- TAMBAHAN IMPORT
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import func
@@ -327,24 +327,23 @@ def struk(no_faktur):
     trx = Transaction.query.filter_by(no_faktur=no_faktur).first_or_404()
     return render_template('invoice.html', trx=trx)
 
-# --- INISIALISASI DB YANG AMAN (ANTI CRASH) ---
+# --- INISIALISASI DB YANG SANGAT AMAN (ANTI CRASH GUNICORN) ---
+# Kita jalankan di luar blok main agar tereksekusi oleh Gunicorn
 with app.app_context():
-    db.create_all()
-    
-    # Cek apakah admin sudah ada?
-    existing_admin = User.query.filter_by(username='admin').first()
-    
-    if not existing_admin:
-        try:
-            print("--- Membuat User Admin Default ---")
+    try:
+        db.create_all() # Coba buat tabel
+    except OperationalError:
+        pass # Abaikan jika tabel sudah ada (race condition)
+
+    # Cek Admin
+    try:
+        if not User.query.first():
             hashed_pw = generate_password_hash('admin123', method='pbkdf2:sha256')
-            new_admin = User(username='admin', password=hashed_pw, role='admin')
-            db.session.add(new_admin)
+            db.session.add(User(username='admin', password=hashed_pw, role='admin'))
             db.session.commit()
-        except IntegrityError:
-            # Jika error karena user sudah dibuat oleh worker lain, rollback dan abaikan
-            db.session.rollback()
-            print("User admin sudah ada (dibuat oleh worker lain).")
+    except (IntegrityError, OperationalError):
+        # Jika error karena admin sudah dibuat worker lain, rollback dan lanjut
+        db.session.rollback()
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
