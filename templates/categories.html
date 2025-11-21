@@ -1,0 +1,139 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+
+    <div class="mb-8">
+        <h2 class="text-2xl lg:text-3xl font-black text-gray-800 tracking-tight">Kategori Barang</h2>
+        <p class="text-sm text-gray-500 mt-1">Kelompokkan produk agar lebih mudah dikelola dan dicari.</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <div class="lg:col-span-1 order-2 lg:order-1">
+            <div class="bg-white p-6 rounded-2xl shadow-lg shadow-gray-100/50 border border-gray-100 sticky top-6">
+                
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 rounded-full bg-elokblack text-elokcyan flex items-center justify-center text-lg font-bold">+</div>
+                    <h3 class="text-lg font-bold text-gray-800">Buat Kategori</h3>
+                </div>
+
+                <form action="{{ url_for('categories') }}" method="POST" class="space-y-5">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Nama Kategori</label>
+                        <input type="text" name="name" required placeholder="Contoh: Makanan Ringan"
+                               class="block w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-elokcyan focus:border-transparent focus:bg-white transition-all duration-200">
+                    </div>
+
+                    <button type="submit" class="w-full group relative flex items-center justify-center px-6 py-3.5 text-sm font-bold text-elokblack transition-all duration-200 bg-elokcyan font-pj rounded-xl focus:outline-none hover:shadow-[0_0_20px_rgba(0,229,255,0.4)] transform hover:-translate-y-1">
+                        Simpan Kategori Baru
+                    </button>
+                </form>
+
+                <div class="mt-6 pt-6 border-t border-gray-100">
+                    <p class="text-xs text-gray-400 leading-relaxed">
+                        Tips: Pastikan nama kategori unik dan mudah dimengerti agar kasir cepat menemukan produk.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-2 order-1 lg:order-2">
+            
+            <div class="flex flex-col sm:flex-row gap-4 mb-6">
+                <div class="bg-white px-5 py-3 rounded-xl border border-gray-100 shadow-sm flex items-center gap-3 flex-shrink-0">
+                    <span class="text-xl">📂</span>
+                    <div>
+                        <p class="text-[10px] font-bold text-gray-400 uppercase">Total</p>
+                        <p class="font-bold text-gray-800">{{ categories|length }} Kategori</p>
+                    </div>
+                </div>
+
+                <div class="relative w-full">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    </div>
+                    <input type="text" id="searchCategory" placeholder="Cari kategori..." 
+                           class="block w-full h-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl leading-5 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-elokcyan focus:border-transparent shadow-sm transition duration-200 text-sm">
+                </div>
+            </div>
+
+            <div class="bg-white shadow-xl shadow-gray-100/50 rounded-2xl overflow-hidden border border-gray-100">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-100" id="categoryTable">
+                        <thead>
+                            <tr class="bg-gray-50">
+                                <th class="px-6 py-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap w-16">ID</th>
+                                <th class="px-6 py-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Nama Kategori</th>
+                                <th class="px-6 py-4 text-right text-[10px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-50">
+                            {% for cat in categories %}
+                            <tr class="hover:bg-blue-50/30 transition duration-150 ease-in-out group search-item">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="text-xs font-mono text-gray-400 bg-gray-50 px-2 py-1 rounded-md">#{{ cat.id }}</span>
+                                </td>
+                                
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center text-sm font-bold">
+                                            {{ cat.name[0]|upper }}
+                                        </div>
+                                        <span class="text-sm font-bold text-gray-800 search-target">{{ cat.name }}</span>
+                                    </div>
+                                </td>
+
+                                <td class="px-6 py-4 whitespace-nowrap text-right">
+                                    <div class="flex justify-end gap-2 opacity-60 group-hover:opacity-100 transition">
+                                        <a href="{{ url_for('edit_category', id=cat.id) }}" 
+                                           class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition shadow-sm border border-blue-100"
+                                           title="Edit">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                        </a>
+                                        <a href="{{ url_for('delete_category', id=cat.id) }}" 
+                                           class="w-8 h-8 rounded-full bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition shadow-sm border border-red-100"
+                                           onclick="return confirm('Yakin hapus kategori ini? Pastikan tidak ada produk di dalamnya.')"
+                                           title="Hapus">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3" class="px-6 py-12 text-center">
+                                    <div class="flex flex-col items-center justify-center text-gray-400">
+                                        <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-3">
+                                            <span class="text-2xl">📂</span>
+                                        </div>
+                                        <p class="text-sm font-medium text-gray-500">Belum ada kategori.</p>
+                                        <p class="text-xs mt-1">Silakan buat kategori baru di form sebelah kiri.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('searchCategory').addEventListener('keyup', function() {
+        let filter = this.value.toUpperCase();
+        let rows = document.querySelectorAll('#categoryTable .search-item');
+        
+        rows.forEach(row => {
+            let target = row.querySelector('.search-target');
+            if (target && target.innerText.toUpperCase().indexOf(filter) > -1) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    });
+</script>
+{% endblock %}

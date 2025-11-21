@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Struk {{ trx.no_faktur }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { width: 80mm; background: #fff; color: #000; font-family: 'Courier New', Courier, monospace; margin: 0 auto; padding: 10px; }
+        @media print { body { width: 100%; margin: 0; padding: 0; } .no-print { display: none; } }
+    </style>
+</head>
+<body onload="window.print()">
+
+    <div class="text-center mb-4 border-b-2 border-dashed border-gray-400 pb-2">
+        <h1 class="text-xl font-bold uppercase">{{ info.nama_toko if info else "ELOK ALFA" }}</h1>
+        <p class="text-xs">{{ info.alamat }}</p>
+        <p class="text-xs">Telp: {{ info.telepon }}</p>
+    </div>
+
+    <div class="text-xs mb-4">
+        <div class="flex justify-between"><span>Faktur:</span><span>{{ trx.no_faktur }}</span></div>
+        <div class="flex justify-between"><span>Tgl:</span><span>{{ trx.tanggal.strftime('%d/%m/%y %H:%M') }}</span></div>
+        <div class="flex justify-between"><span>Pelanggan:</span><span class="font-bold uppercase">{{ trx.customer_name }}</span></div>
+    </div>
+
+    <div class="border-b-2 border-dashed border-gray-400 pb-2 mb-2">
+        <table class="w-full text-xs">
+            {% for item in trx.details %}
+            <tr><td colspan="3" class="pt-1 font-bold">{{ item.product_name }}</td></tr>
+            <tr><td class="pb-1">{{ item.qty }} x {{ "{:,.0f}".format(item.price) }}</td><td class="text-right pb-1">{{ "{:,.0f}".format(item.subtotal) }}</td></tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <div class="text-sm font-bold">
+        <div class="flex justify-between mb-1"><span>TOTAL</span><span>Rp {{ "{:,.0f}".format(trx.total_bayar) }}</span></div>
+        <div class="flex justify-between text-xs font-normal"><span>Metode</span><span>{{ trx.payment_method }}</span></div>
+        <div class="flex justify-between text-xs font-normal"><span>Bayar</span><span>Rp {{ "{:,.0f}".format(trx.uang_diterima) }}</span></div>
+        <div class="flex justify-between text-xs font-normal"><span>Kembali</span><span>Rp {{ "{:,.0f}".format(trx.kembalian) }}</span></div>
+    </div>
+
+    <div class="text-center mt-6 pt-2 border-t border-gray-300 text-xs">
+        <p>Terima Kasih</p>
+        <p>Barang yang dibeli tidak dapat ditukar</p>
+    </div>
+
+    <div class="mt-8 text-center no-print">
+        <button onclick="window.print()" class="bg-black text-white px-4 py-2 rounded text-xs">Print</button>
+        <button onclick="window.close()" class="bg-gray-200 px-4 py-2 rounded text-xs ml-2">Tutup</button>
+    </div>
+
+</body>
+</html>

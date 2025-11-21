@@ -1,0 +1,152 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="flex flex-col h-[80vh] lg:h-[calc(100vh-5rem)]">
+
+    <div class="lg:hidden flex p-1 bg-gray-200 rounded-xl mb-3 shrink-0 relative">
+        <button onclick="switchTab('products')" id="btnTabProd" class="flex-1 py-2 text-center text-xs font-bold rounded-lg transition-all shadow-sm bg-white text-elokblack">📦 Katalog Produk</button>
+        <button onclick="switchTab('cart')" id="btnTabCart" class="flex-1 py-2 text-center text-xs font-bold rounded-lg transition-all text-gray-500 relative">🛒 Keranjang <span id="mobileCartBadge" class="absolute top-1 right-2 w-2 h-2 bg-red-500 rounded-full hidden"></span></button>
+    </div>
+
+    <div class="flex-1 flex flex-col lg:flex-row gap-5 min-h-0 overflow-hidden relative">
+
+        <div id="viewProducts" class="tab-content w-full lg:w-3/5 flex flex-col h-full min-h-0 transition-opacity duration-300">
+            <div class="relative group mb-4 shrink-0 z-10">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><svg class="h-5 w-5 text-gray-400 group-focus-within:text-elokcyan transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg></div>
+                <input type="text" id="searchProduct" class="block w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200 rounded-full leading-5 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-elokcyan focus:border-elokcyan shadow-sm transition-all text-sm" placeholder="Cari produk..." autofocus>
+            </div>
+            <div class="flex-1 overflow-y-auto p-1 grid grid-cols-2 md:grid-cols-3 gap-3 content-start pb-20 lg:pb-0 scrollbar-hide" id="productList">
+                {% for p in products %}
+                <div class="product-card group bg-white rounded-2xl border border-gray-100 p-3 cursor-pointer hover:border-elokcyan hover:shadow-lg transition-all relative flex flex-col h-36 lg:h-44 justify-between transform hover:-translate-y-1"
+                     onclick="addToCart({{ p.id }}, '{{ p.name }}', {{ p.sell_price }}, {{ p.stock }})"
+                     data-name="{{ p.name.lower() }}" data-code="{{ p.code }}">
+                    <div class="flex justify-between items-start w-full">
+                        <span class="text-[10px] font-mono text-gray-400 bg-gray-50 px-2 py-1 rounded-md">{{ p.code }}</span>
+                        <span class="text-[10px] font-bold px-2 py-1 rounded-full {{ 'bg-green-50 text-green-600' if p.stock > 5 else 'bg-red-50 text-red-600' }}">{{ p.stock }}</span>
+                    </div>
+                    <div class="mt-1"><h4 class="font-bold text-gray-700 text-xs lg:text-sm leading-snug line-clamp-2 group-hover:text-elokblack transition">{{ p.name }}</h4></div>
+                    <div class="flex justify-between items-center mt-auto">
+                        <span class="text-elokdark font-extrabold text-sm">Rp {{ "{:,.0f}".format(p.sell_price) }}</span>
+                        <div class="w-7 h-7 rounded-full bg-elokblack text-elokcyan flex items-center justify-center opacity-0 group-hover:opacity-100 lg:opacity-0 transition-all shadow-lg scale-50 group-hover:scale-100">+</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div id="viewCart" class="tab-content hidden lg:flex w-full lg:w-2/5 bg-white rounded-2xl shadow-2xl flex-col h-full border border-gray-100 overflow-hidden relative z-20">
+            
+            <div class="px-5 py-3 border-b border-gray-100 bg-white flex justify-between items-center shrink-0">
+                <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg bg-elokcyan/10 text-elokcyan flex items-center justify-center font-bold">🛍️</div><div><h2 class="text-sm font-bold text-gray-800 uppercase">Keranjang</h2><p class="text-[10px] text-gray-400" id="itemCount">0 Item</p></div></div>
+                <button onclick="resetCart()" class="text-gray-400 hover:text-red-500 transition text-xs">Reset</button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-0 bg-white scrollbar-thin scrollbar-thumb-gray-100">
+                <table class="w-full text-sm"><tbody id="cartTableBody" class="divide-y divide-dashed divide-gray-100"></tbody></table>
+                <div id="emptyCartMsg" class="flex flex-col items-center justify-center h-full text-gray-300 pb-10"><svg class="w-12 h-12 mb-2 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg><span class="text-xs font-medium text-gray-400">Keranjang Kosong</span></div>
+            </div>
+
+            <div class="bg-white border-t border-gray-100 shadow-[0_-10px_30px_rgba(0,0,0,0.03)] shrink-0 p-4 z-30">
+                
+                <div class="flex gap-2 mb-2">
+                    <button onclick="setPayment('Cash')" id="btnCash" class="flex-1 py-2 rounded-lg text-[10px] font-bold border border-elokblack bg-elokblack text-elokcyan transition shadow-md">💵 CASH</button>
+                    <button onclick="setPayment('Transfer')" id="btnTransfer" class="flex-1 py-2 rounded-lg text-[10px] font-bold border border-gray-200 text-gray-500 hover:bg-gray-50 transition">🏦 TRANSFER</button>
+                </div>
+
+                <div class="flex justify-between items-end mb-2">
+                    <span class="text-gray-400 text-[10px] font-bold uppercase tracking-widest">Total</span>
+                    <span id="totalDisplay" class="text-2xl font-black text-gray-800 tracking-tight">Rp 0</span>
+                </div>
+                
+                <div class="mb-3">
+                    <input type="text" id="inputCustomer" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-elokcyan focus:bg-white transition" placeholder="Nama Pelanggan (Opsional)">
+                </div>
+
+                <div class="mb-3">
+                    <div id="modeCash" class="grid grid-cols-5 gap-2">
+                        <div class="col-span-3 relative">
+                            <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-[10px] font-bold">BAYAR</span>
+                            <input type="number" id="inputBayar" class="w-full pl-14 pr-3 py-2.5 bg-gray-50 border-none rounded-xl font-bold text-gray-800 text-base focus:ring-2 focus:ring-elokcyan outline-none transition" placeholder="0" onkeyup="hitungKembalian()">
+                        </div>
+                        <div class="col-span-2 bg-gray-50 rounded-xl flex flex-col justify-center px-2 text-right">
+                            <span class="text-[10px] text-gray-400 uppercase font-bold">Kembali</span>
+                            <span id="kembalianDisplay" class="font-bold text-gray-800 text-xs">Rp 0</span>
+                        </div>
+                    </div>
+
+                    <div id="modeTransfer" class="hidden">
+                        <label class="flex flex-col items-center justify-center w-full h-12 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-gray-50 hover:border-elokcyan transition" id="dropzone">
+                            <div class="flex items-center gap-2 text-gray-500">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                <span class="text-[10px] font-bold" id="fileNameDisplay">Upload Bukti</span>
+                            </div>
+                            <input type="file" id="proofFile" class="hidden" accept="image/*" onchange="handleFileSelect(this)">
+                        </label>
+                    </div>
+                </div>
+
+                <button onclick="prosesBayar()" id="btnBayar" disabled class="w-full py-3 bg-gray-100 text-gray-400 font-bold rounded-xl shadow-none cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-2 text-sm tracking-wider">Proses Bayar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let cart=[], totalBelanja=0, currentMethod='Cash';
+
+    function switchTab(t) {
+        const p=document.getElementById('viewProducts'), c=document.getElementById('viewCart');
+        if(t==='products'){ p.classList.remove('hidden'); c.classList.add('hidden'); document.getElementById('btnTabProd').classList.add('bg-white','text-elokblack'); document.getElementById('btnTabCart').classList.remove('bg-white','text-elokblack'); }
+        else { p.classList.add('hidden'); c.classList.remove('hidden'); c.classList.add('flex'); document.getElementById('btnTabCart').classList.add('bg-white','text-elokblack'); document.getElementById('btnTabProd').classList.remove('bg-white','text-elokblack'); document.getElementById('mobileCartBadge').classList.add('hidden'); }
+    }
+
+    function addToCart(id,name,price,stock) {
+        if(stock<=0){alert("Stok Habis!");return;} let item=cart.find(i=>i.id===id);
+        if(item){ if(item.qty<stock) item.qty++; else alert("Stok mentok!"); } else cart.push({id,name,price,qty:1,stock});
+        renderCart(); if(document.getElementById('viewCart').classList.contains('hidden')) document.getElementById('mobileCartBadge').classList.remove('hidden');
+    }
+
+    function renderCart(){
+        const b=document.getElementById('cartTableBody'), e=document.getElementById('emptyCartMsg'), c=document.getElementById('itemCount');
+        b.innerHTML=''; totalBelanja=0; let tQty=0;
+        if(cart.length===0){e.style.display='flex';c.innerText="0 Item";}
+        else{e.style.display='none'; cart.forEach((item,i)=>{
+            let sub=item.price*item.qty; totalBelanja+=sub; tQty+=item.qty;
+            b.innerHTML+=`<tr class="group hover:bg-gray-50 transition"><td class="py-3 pl-6"><div class="font-bold text-gray-800 text-xs">${item.name}</div><div class="text-[10px] text-gray-400">@${item.price.toLocaleString()}</div></td><td class="py-3 text-center"><div class="inline-flex items-center bg-white border border-gray-200 rounded-lg h-6"><button onclick="upd(${i},-1)" class="w-6 h-full text-gray-400 hover:text-red-500 font-bold">-</button><span class="text-xs font-bold px-1 text-gray-700">${item.qty}</span><button onclick="upd(${i},1)" class="w-6 h-full text-gray-400 hover:text-green-500 font-bold">+</button></div></td><td class="py-3 pr-6 text-right text-xs font-bold text-gray-800">Rp ${sub.toLocaleString()}<div onclick="rm(${i})" class="text-[9px] text-red-300 hover:text-red-500 cursor-pointer">Hapus</div></td></tr>`;
+        }); c.innerText=tQty+" Item"; }
+        document.getElementById('totalDisplay').innerText="Rp "+totalBelanja.toLocaleString();
+        if(currentMethod==='Cash') hitungKembalian(); else checkTransferValidity();
+    }
+
+    function upd(i,c){if(c===1&&cart[i].qty>=cart[i].stock)return alert("Stok mentok!"); cart[i].qty+=c; if(cart[i].qty<1)cart.splice(i,1); renderCart();}
+    function rm(i){cart.splice(i,1); renderCart();}
+    function resetCart(){if(cart.length>0&&confirm("Reset?")){cart=[];renderCart();document.getElementById('inputBayar').value='';}}
+
+    function setPayment(m){
+        currentMethod=m; const c=document.getElementById('modeCash'), t=document.getElementById('modeTransfer'), bc=document.getElementById('btnCash'), bt=document.getElementById('btnTransfer');
+        if(m==='Cash'){c.classList.remove('hidden');t.classList.add('hidden'); bc.classList.add('bg-elokblack','text-elokcyan'); bt.classList.remove('bg-elokblack','text-elokcyan'); hitungKembalian();}
+        else{t.classList.remove('hidden');c.classList.add('hidden'); bt.classList.add('bg-elokblack','text-elokcyan'); bc.classList.remove('bg-elokblack','text-elokcyan'); checkTransferValidity();}
+    }
+
+    function handleFileSelect(i){ const l=document.getElementById('fileNameDisplay'), d=document.getElementById('dropzone'); if(i.files[0]){l.innerText=i.files[0].name.substring(0,15)+"..."; d.classList.add('border-elokcyan','bg-cyan-50');} else {l.innerText="Upload Bukti"; d.classList.remove('border-elokcyan','bg-cyan-50');} checkTransferValidity();}
+    function checkTransferValidity(){ const f=document.getElementById('proofFile'), b=document.getElementById('btnBayar'); (cart.length>0&&f.files.length>0)?enableBtn(b):disableBtn(b); }
+    function hitungKembalian(){ if(currentMethod!=='Cash')return; let b=parseInt(document.getElementById('inputBayar').value)||0, k=b-totalBelanja, d=document.getElementById('kembalianDisplay'), btn=document.getElementById('btnBayar'); d.innerText=(b>0?"Rp "+k.toLocaleString():"Rp 0"); d.className=k>=0?"font-bold text-green-600 text-xs":"font-bold text-red-600 text-xs"; (b>=totalBelanja&&totalBelanja>0)?enableBtn(btn):disableBtn(btn); }
+    function enableBtn(b){b.disabled=false;b.className="w-full py-3 bg-elokblack text-elokcyan font-bold rounded-xl shadow-xl cursor-pointer transition-all text-sm tracking-wider transform hover:-translate-y-1";}
+    function disableBtn(b){b.disabled=true;b.className="w-full py-3 bg-gray-100 text-gray-400 font-bold rounded-xl shadow-none cursor-not-allowed transition-all text-sm tracking-wider";}
+
+    document.getElementById('searchProduct').addEventListener('input',function(e){let k=e.target.value.toLowerCase(); document.querySelectorAll('.product-card').forEach(c=>c.style.display=(c.dataset.name.includes(k)||c.dataset.code.includes(k))?'flex':'none');});
+
+    function prosesBayar(){
+        if(!confirm("Proses?"))return;
+        let fd=new FormData();
+        fd.append('keranjang',JSON.stringify(cart)); fd.append('total_bayar',totalBelanja); fd.append('payment_method',currentMethod);
+        // Tambahkan nama pelanggan ke form data
+        fd.append('customer_name', document.getElementById('inputCustomer').value);
+
+        if(currentMethod==='Cash'){fd.append('uang_diterima',parseInt(document.getElementById('inputBayar').value)); fd.append('kembalian',parseInt(document.getElementById('inputBayar').value)-totalBelanja);}
+        else{fd.append('uang_diterima',totalBelanja); fd.append('kembalian',0); fd.append('proof_image',document.getElementById('proofFile').files[0]);}
+
+        fetch('/kasir/proses_bayar',{method:'POST',body:fd}).then(r=>r.json()).then(d=>{if(d.status==='success'){window.location.reload();setTimeout(()=>window.open('/struk/'+d.no_faktur,'_blank'),500);}else alert("Gagal: "+d.message);});
+    }
+</script>
+{% endblock %}

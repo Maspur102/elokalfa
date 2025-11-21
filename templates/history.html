@@ -1,0 +1,59 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <div class="flex flex-col md:flex-row justify-between items-end md:items-center mb-8 gap-4">
+        <div><h2 class="text-2xl font-black text-gray-800">Riwayat Transaksi</h2><p class="text-sm text-gray-500">Arsip penjualan.</p></div>
+        <input type="text" id="searchHistory" placeholder="Cari No Faktur..." class="block w-full md:w-72 pl-4 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-elokcyan text-sm">
+    </div>
+
+    <div class="bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-100" id="historyTable">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-[10px] font-bold text-gray-400 uppercase">Info Faktur</th>
+                        <th class="px-6 py-4 text-left text-[10px] font-bold text-gray-400 uppercase">Waktu</th>
+                        <th class="px-6 py-4 text-left text-[10px] font-bold text-gray-400 uppercase">Metode</th>
+                        <th class="px-6 py-4 text-right text-[10px] font-bold text-gray-400 uppercase">Total</th>
+                        <th class="px-6 py-4 text-center text-[10px] font-bold text-gray-400 uppercase">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-50">
+                    {% for t in transaksi %}
+                    <tr class="hover:bg-blue-50/30 transition search-item">
+                        <td class="px-6 py-4 whitespace-nowrap"><div class="text-sm font-bold text-gray-800 search-text">{{ t.no_faktur }}</div><div class="text-[10px] text-gray-400">{{ t.details|length }} Items</div></td>
+                        <td class="px-6 py-4 whitespace-nowrap"><div class="text-xs font-bold text-gray-700">{{ t.tanggal.strftime('%d %b %Y') }}</div><div class="text-[10px] text-gray-400">{{ t.tanggal.strftime('%H:%M') }}</div></td>
+                        
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if t.payment_method == 'Transfer' %}
+                                <span class="px-2 py-1 bg-purple-100 text-purple-700 text-[10px] font-bold rounded">TRANSFER</span>
+                                {% if t.proof_image %}
+                                    <a href="{{ url_for('static', filename='uploads/proofs/' + t.proof_image) }}" target="_blank" class="ml-2 text-[10px] text-blue-500 underline hover:text-blue-700">Lihat Bukti</a>
+                                {% endif %}
+                            {% else %}
+                                <span class="px-2 py-1 bg-green-100 text-green-700 text-[10px] font-bold rounded">CASH</span>
+                            {% endif %}
+                        </td>
+
+                        <td class="px-6 py-4 whitespace-nowrap text-right font-bold text-gray-800">Rp {{ "{:,.0f}".format(t.total_bayar) }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center flex justify-center gap-2">
+                            <a href="{{ url_for('struk', no_faktur=t.no_faktur) }}" target="_blank" class="w-8 h-8 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center hover:bg-elokcyan hover:text-elokblack transition">🖨️</a>
+                            <a href="{{ url_for('delete_history', id=t.id) }}" class="w-8 h-8 rounded-full bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition" onclick="return confirm('Hapus?')">🗑️</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<script>
+    document.getElementById('searchHistory').addEventListener('keyup', function() {
+        let filter = this.value.toUpperCase();
+        document.querySelectorAll('#historyTable .search-item').forEach(row => {
+            row.style.display = row.querySelector('.search-text').innerText.toUpperCase().includes(filter) ? "" : "none";
+        });
+    });
+</script>
+{% endblock %}
