@@ -5,17 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Elok Alfa POS System</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         tailwind.config = {
             theme: {
-                extend: {
-                    colors: {
-                        elokblack: '#0a0a0a',
-                        elokcyan: '#00e5ff',
-                        elokdark: '#1a1a1a',
-                        elokgray: '#f3f4f6'
-                    }
-                }
+                extend: { colors: { elokblack: '#0a0a0a', elokcyan: '#00e5ff', elokdark: '#1a1a1a', elokgray: '#f3f4f6' } }
             }
         }
     </script>
@@ -30,88 +24,46 @@
     <div class="fixed inset-0 bg-gray-100/90 -z-10"></div>
 
     <header class="lg:hidden fixed top-0 left-0 right-0 w-full bg-black/80 backdrop-blur-md text-white h-16 px-4 flex justify-between items-center shadow-md z-50 border-b border-white/10">
-        <div class="flex items-center gap-3">
-            {% if info and info.logo_filename %}
-                <img src="{{ url_for('static', filename='uploads/' + info.logo_filename) }}" class="w-8 h-8 rounded-full border border-elokcyan object-cover">
-            {% else %}
-                <div class="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center border border-elokcyan text-[10px] font-bold text-elokcyan">EA</div>
-            {% endif %}
+        <a href="{{ url_for('index') }}" class="flex items-center gap-3 active:opacity-70 transition">
+            {% if info and info.logo_filename %} <img src="{{ url_for('static', filename='uploads/' + info.logo_filename) }}" class="w-8 h-8 rounded-full border border-elokcyan object-cover"> {% else %} <div class="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center border border-elokcyan text-[10px] font-bold text-elokcyan">EA</div> {% endif %}
             <span class="font-bold text-elokcyan tracking-wide text-sm">{{ info.nama_toko if info else "ELOK ALFA" }}</span>
-        </div>
-        
-        <button onclick="toggleSidebar()" class="text-white focus:outline-none hover:text-elokcyan transition p-2 active:scale-95">
-            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-        </button>
+        </a>
+        <button onclick="toggleSidebar()" class="text-white focus:outline-none hover:text-elokcyan transition p-2 active:scale-95"><svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
     </header>
 
     <div id="mobileOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden transition-opacity duration-300 lg:hidden"></div>
 
-    <aside id="sidebar" class="fixed z-50 w-64 bg-black/85 backdrop-blur-2xl text-white flex flex-col shadow-[0_10px_40px_rgba(0,0,0,0.5)] transform -translate-x-[150%] transition-transform duration-300 border border-white/10 overflow-hidden
-               top-20 bottom-4 left-4 rounded-3xl
-               lg:translate-x-0 lg:top-4 lg:bottom-4 lg:left-4">
-        
+    <aside id="sidebar" class="fixed z-50 w-64 bg-black/85 backdrop-blur-2xl text-white flex flex-col shadow-[0_10px_40px_rgba(0,0,0,0.5)] transform -translate-x-[150%] transition-transform duration-300 border border-white/10 overflow-hidden top-20 bottom-4 left-4 rounded-3xl lg:translate-x-0 lg:top-4 lg:bottom-4 lg:left-4">
         <div class="hidden lg:block p-6 text-center relative shrink-0">
-            <div class="flex flex-col items-center group cursor-default">
-                {% if info and info.logo_filename %}
-                    <img src="{{ url_for('static', filename='uploads/' + info.logo_filename) }}" 
-                         class="w-16 h-16 rounded-2xl border-2 border-elokcyan/50 object-cover mb-3 shadow-lg group-hover:scale-105 transition duration-300">
-                {% else %}
-                    <div class="w-16 h-16 rounded-2xl bg-gray-800/50 flex items-center justify-center border-2 border-elokcyan/50 mb-3 shadow-lg">
-                        <span class="text-xl font-bold text-elokcyan">EA</span>
-                    </div>
-                {% endif %}
-                
+            <a href="{{ url_for('index') }}" class="flex flex-col items-center group cursor-pointer hover:opacity-80 transition">
+                {% if info and info.logo_filename %} <img src="{{ url_for('static', filename='uploads/' + info.logo_filename) }}" class="w-16 h-16 rounded-2xl border-2 border-elokcyan/50 object-cover mb-3 shadow-lg group-hover:scale-105 transition duration-300"> {% else %} <div class="w-16 h-16 rounded-2xl bg-gray-800/50 flex items-center justify-center border-2 border-elokcyan/50 mb-3 shadow-lg"><span class="text-xl font-bold text-elokcyan">EA</span></div> {% endif %}
                 <h1 class="text-base font-bold text-white tracking-wider uppercase truncate w-full">{{ info.nama_toko if info else "ELOK ALFA" }}</h1>
-                <div class="px-3 py-1 mt-1 bg-elokcyan/20 rounded-full border border-elokcyan/30">
-                    <p class="text-[10px] text-elokcyan font-bold">Admin Panel</p>
-                </div>
-            </div>
+                <div class="px-3 py-1 mt-1 bg-elokcyan/20 rounded-full border border-elokcyan/30"><p class="text-[10px] text-elokcyan font-bold">Admin Panel</p></div>
+            </a>
         </div>
-
-        <div class="lg:hidden absolute top-3 right-3 z-50">
-             <button onclick="toggleSidebar()" class="text-gray-400 hover:text-white bg-white/10 p-1.5 rounded-full">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-        </div>
-        
+        <div class="lg:hidden absolute top-3 right-3 z-50"><button onclick="toggleSidebar()" class="text-gray-400 hover:text-white bg-white/10 p-1.5 rounded-full"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button></div>
         <nav class="flex-1 px-4 py-4 space-y-2 overflow-y-auto scrollbar-hide mt-2 lg:mt-0">
             <div class="mb-4">
                 <p class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Main Menu</p>
-                <a href="{{ url_for('index') }}" class="flex items-center py-3 px-4 rounded-xl transition-all duration-200 group {{ 'bg-elokcyan text-elokblack shadow-[0_0_20px_rgba(0,229,255,0.4)] font-bold' if request.endpoint == 'index' else 'hover:bg-white/10 text-gray-300 hover:text-white' }}">
-                    <span class="mr-3 text-lg">🏠</span> <span>Dashboard</span>
-                </a>
-                <a href="{{ url_for('kasir') }}" class="flex items-center py-3 px-4 rounded-xl transition-all duration-200 group {{ 'bg-elokcyan text-elokblack shadow-[0_0_20px_rgba(0,229,255,0.4)] font-bold' if request.endpoint == 'kasir' else 'hover:bg-white/10 text-gray-300 hover:text-white' }}">
-                    <span class="mr-3 text-lg">🛒</span> <span>Kasir / POS</span>
-                </a>
+                <a href="{{ url_for('index') }}" class="flex items-center py-3 px-4 rounded-xl transition-all duration-200 group {{ 'bg-elokcyan text-elokblack shadow-[0_0_20px_rgba(0,229,255,0.4)] font-bold' if request.endpoint == 'index' else 'hover:bg-white/10 text-gray-300 hover:text-white' }}"><span class="mr-3 text-lg">🏠</span> <span>Dashboard</span></a>
+                <a href="{{ url_for('kasir') }}" class="flex items-center py-3 px-4 rounded-xl transition-all duration-200 group {{ 'bg-elokcyan text-elokblack shadow-[0_0_20px_rgba(0,229,255,0.4)] font-bold' if request.endpoint == 'kasir' else 'hover:bg-white/10 text-gray-300 hover:text-white' }}"><span class="mr-3 text-lg">🛒</span> <span>Kasir / POS</span></a>
+                <a href="{{ url_for('expenses') }}" class="flex items-center py-3 px-4 rounded-xl transition-all duration-200 group {{ 'bg-elokcyan text-elokblack shadow-[0_0_20px_rgba(0,229,255,0.4)] font-bold' if request.endpoint == 'expenses' else 'hover:bg-white/10 text-gray-300 hover:text-white' }}"><span class="mr-3 text-lg">💸</span> <span>Pengeluaran</span></a>
             </div>
             <div class="mb-4">
                 <p class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Data Master</p>
-                <a href="{{ url_for('history') }}" class="flex items-center py-2.5 px-4 rounded-xl transition-all duration-200 group {{ 'bg-white/20 text-white border border-white/20 font-bold' if request.endpoint == 'history' else 'hover:bg-white/10 text-gray-300 hover:text-white' }}">
-                    <span class="mr-3 text-lg">📄</span> <span>Riwayat</span>
-                </a>
-                <a href="{{ url_for('products') }}" class="flex items-center py-2.5 px-4 rounded-xl transition-all duration-200 group {{ 'bg-white/20 text-white border border-white/20 font-bold' if request.endpoint == 'products' else 'hover:bg-white/10 text-gray-300 hover:text-white' }}">
-                    <span class="mr-3 text-lg">📦</span> <span>Produk</span>
-                </a>
-                <a href="{{ url_for('categories') }}" class="flex items-center py-2.5 px-4 rounded-xl transition-all duration-200 group {{ 'bg-white/20 text-white border border-white/20 font-bold' if request.endpoint == 'categories' else 'hover:bg-white/10 text-gray-300 hover:text-white' }}">
-                    <span class="mr-3 text-lg">📂</span> <span>Kategori</span>
-                </a>
+                <a href="{{ url_for('history') }}" class="flex items-center py-2.5 px-4 rounded-xl transition-all duration-200 group {{ 'bg-white/20 text-white border border-white/20 font-bold' if request.endpoint == 'history' else 'hover:bg-white/10 text-gray-300 hover:text-white' }}"><span class="mr-3 text-lg">📄</span> <span>Riwayat</span></a>
+                <a href="{{ url_for('products') }}" class="flex items-center py-2.5 px-4 rounded-xl transition-all duration-200 group {{ 'bg-white/20 text-white border border-white/20 font-bold' if request.endpoint == 'products' else 'hover:bg-white/10 text-gray-300 hover:text-white' }}"><span class="mr-3 text-lg">📦</span> <span>Produk</span></a>
+                <a href="{{ url_for('categories') }}" class="flex items-center py-2.5 px-4 rounded-xl transition-all duration-200 group {{ 'bg-white/20 text-white border border-white/20 font-bold' if request.endpoint == 'categories' else 'hover:bg-white/10 text-gray-300 hover:text-white' }}"><span class="mr-3 text-lg">📂</span> <span>Kategori</span></a>
             </div>
              <div>
                 <p class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">System</p>
-                <a href="{{ url_for('settings') }}" class="flex items-center py-2.5 px-4 rounded-xl transition-all duration-200 group {{ 'bg-white/20 text-white border border-white/20 font-bold' if request.endpoint == 'settings' else 'hover:bg-white/10 text-gray-300 hover:text-white' }}">
-                    <span class="mr-3 text-lg">⚙️</span> <span>Pengaturan</span>
-                </a>
+                <a href="{{ url_for('settings') }}" class="flex items-center py-2.5 px-4 rounded-xl transition-all duration-200 group {{ 'bg-white/20 text-white border border-white/20 font-bold' if request.endpoint == 'settings' else 'hover:bg-white/10 text-gray-300 hover:text-white' }}"><span class="mr-3 text-lg">⚙️</span> <span>Pengaturan</span></a>
             </div>
         </nav>
-
-        <div class="p-4">
-            <a href="{{ url_for('logout') }}" class="flex items-center justify-center w-full py-3 px-4 rounded-xl bg-gradient-to-r from-red-900/50 to-red-800/50 text-red-200 border border-red-500/30 hover:from-red-600 hover:to-red-500 hover:text-white hover:shadow-lg transition-all text-xs font-bold uppercase tracking-wide backdrop-blur-md group">
-                <span class="group-hover:scale-110 transition-transform mr-2">🚪</span> Keluar
-            </a>
-        </div>
+        <div class="p-4"><a href="{{ url_for('logout') }}" class="flex items-center justify-center w-full py-3 px-4 rounded-xl bg-gradient-to-r from-red-900/50 to-red-800/50 text-red-200 border border-red-500/30 hover:from-red-600 hover:to-red-500 hover:text-white hover:shadow-lg transition-all text-xs font-bold uppercase tracking-wide backdrop-blur-md group"><span class="group-hover:scale-110 transition-transform mr-2">🚪</span> Keluar</a></div>
     </aside>
 
-    <main class="flex-1 flex flex-col h-full overflow-hidden w-full relative pt-20 pl-4 pr-4 pb-4 lg:pt-4 lg:pl-[18rem]">
+    <main class="flex-1 flex flex-col h-full overflow-hidden w-full relative pt-24 pl-4 pr-4 pb-4 lg:pt-4 lg:pl-[18rem]">
         
         <div class="flex-1 overflow-y-auto bg-white/80 backdrop-blur-md rounded-3xl shadow-xl border border-white/50 w-full h-full relative">
             
@@ -119,59 +71,60 @@
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
                         {% for category, message in messages %}
-                            <div class="pointer-events-auto flex items-center p-4 mb-2 text-sm rounded-2xl shadow-lg backdrop-blur-xl border animate-bounce
-                                {% if category == 'success' %} bg-green-100/90 text-green-800 border-green-200
-                                {% elif category == 'error' %} bg-red-100/90 text-red-800 border-red-200
-                                {% else %} bg-blue-100/90 text-blue-800 border-blue-200 {% endif %}" role="alert">
-                                <span class="font-bold mr-2">
-                                    {% if category == 'success' %} ✅
-                                    {% elif category == 'error' %} 🚨
-                                    {% else %} ℹ️ {% endif %}
-                                </span>
-                                {{ message }}
-                            </div>
+                            <div class="pointer-events-auto flex items-center p-4 mb-2 text-sm rounded-2xl shadow-lg backdrop-blur-xl border animate-bounce {% if category == 'success' %} bg-green-100/90 text-green-800 border-green-200 {% elif category == 'error' %} bg-red-100/90 text-red-800 border-red-200 {% else %} bg-blue-100/90 text-blue-800 border-blue-200 {% endif %}" role="alert"><span class="font-bold mr-2">{% if category == 'success' %} ✅ {% elif category == 'error' %} 🚨 {% else %} ℹ️ {% endif %}</span> {{ message }}</div>
                         {% endfor %}
                     {% endif %}
                 {% endwith %}
             </div>
 
-            <div class="p-4 lg:p-8 min-h-full">
+            <div class="p-4 lg:p-8 min-h-full pb-24">
                 {% if content_only %}
                      <div class="max-w-7xl mx-auto">
                         <div class="flex justify-between items-center mb-6">
                             <h2 class="text-xl font-bold text-gray-800">Ringkasan Hari Ini</h2>
-                            <span class="text-xs text-gray-600 bg-white/50 px-3 py-1 rounded-lg border border-gray-200 shadow-sm font-mono">📅 {{ now_str }}</span>
+                            <span id="realtimeClock" class="text-xs text-gray-600 bg-white/50 px-3 py-1 rounded-lg border border-gray-200 shadow-sm font-mono">
+                                Memuat...
+                            </span>
                         </div>
-                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                            <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition">
-                                <div class="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 text-2xl">💰</div>
-                                <div><p class="text-[10px] uppercase font-bold text-gray-400">Omset</p><h3 class="text-lg font-bold text-gray-800">Rp {{ "{:,.0f}".format(omset) }}</h3></div>
+                        
+                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+                            <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3 hover:shadow-md transition">
+                                <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 text-lg">💰</div>
+                                <div><p class="text-[9px] uppercase font-bold text-gray-400">Omset</p><h3 class="text-sm font-bold text-gray-800">Rp {{ "{:,.0f}".format(omset) }}</h3></div>
                             </div>
-                            <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition">
-                                <div class="w-12 h-12 rounded-2xl bg-purple-50 flex items-center justify-center text-purple-600 text-2xl">🧾</div>
-                                <div><p class="text-[10px] uppercase font-bold text-gray-400">Transaksi</p><h3 class="text-lg font-bold text-gray-800">{{ trx_count }}</h3></div>
+                            <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3 hover:shadow-md transition">
+                                <div class="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-red-600 text-lg">💸</div>
+                                <div><p class="text-[9px] uppercase font-bold text-gray-400">Keluar</p><h3 class="text-sm font-bold text-red-600">Rp {{ "{:,.0f}".format(expense) }}</h3></div>
                             </div>
-                            <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition">
-                                <div class="w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center text-green-600 text-2xl">📦</div>
-                                <div><p class="text-[10px] uppercase font-bold text-gray-400">Produk</p><h3 class="text-lg font-bold text-gray-800">{{ total_products }}</h3></div>
+                            <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3 hover:shadow-md transition">
+                                <div class="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center text-green-600 text-lg">📈</div>
+                                <div><p class="text-[9px] uppercase font-bold text-gray-400">Profit</p><h3 class="text-sm font-bold text-green-600">Rp {{ "{:,.0f}".format(profit) }}</h3></div>
                             </div>
-                            <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition">
-                                <div class="w-12 h-12 rounded-2xl bg-red-50 flex items-center justify-center text-red-600 text-2xl">⚠️</div>
-                                <div><p class="text-[10px] uppercase font-bold text-gray-400">Low Stock</p><h3 class="text-lg font-bold text-red-600">{{ low_stock }}</h3></div>
+                            <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3 hover:shadow-md transition">
+                                <div class="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 text-lg">🧾</div>
+                                <div><p class="text-[9px] uppercase font-bold text-gray-400">Order</p><h3 class="text-sm font-bold text-gray-800">{{ trx_count }}</h3></div>
                             </div>
+                            <a href="{{ url_for('products', filter='low') }}" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3 hover:shadow-md transition hover:border-orange-300 hover:bg-orange-50/50 cursor-pointer group">
+                                <div class="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500 text-lg group-hover:bg-orange-100 transition">⚠️</div>
+                                <div><p class="text-[9px] uppercase font-bold text-gray-400 group-hover:text-orange-600">Stok Tipis</p><h3 class="text-sm font-bold text-orange-500">{{ low_stock }} Item</h3></div>
+                            </a>
                         </div>
+
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8">
+                            <h3 class="text-sm font-bold text-gray-700 mb-4">Grafik Penjualan (7 Hari Terakhir)</h3>
+                            <div class="h-64 w-full"><canvas id="salesChart"></canvas></div>
+                        </div>
+
                         <h3 class="text-sm font-bold text-gray-700 mb-3">Menu Cepat</h3>
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                             <a href="{{ url_for('kasir') }}" class="bg-white border border-gray-200 p-4 rounded-2xl shadow-sm hover:border-elokcyan hover:shadow-lg hover:-translate-y-1 transition flex flex-col items-center text-center"><div class="w-12 h-12 rounded-full bg-elokcyan/10 text-elokcyan flex items-center justify-center mb-3 text-xl">🛒</div><span class="font-bold text-gray-700 text-xs">Kasir</span></a>
-                            <a href="{{ url_for('add_product') }}" class="bg-white border border-gray-200 p-4 rounded-2xl shadow-sm hover:border-elokcyan hover:shadow-lg hover:-translate-y-1 transition flex flex-col items-center text-center"><div class="w-12 h-12 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center mb-3 text-xl">+</div><span class="font-bold text-gray-700 text-xs">Produk</span></a>
+                            <a href="{{ url_for('expenses') }}" class="bg-white border border-gray-200 p-4 rounded-2xl shadow-sm hover:border-elokcyan hover:shadow-lg hover:-translate-y-1 transition flex flex-col items-center text-center"><div class="w-12 h-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mb-3 text-xl">💸</div><span class="font-bold text-gray-700 text-xs">Pengeluaran</span></a>
                             <a href="{{ url_for('history') }}" class="bg-white border border-gray-200 p-4 rounded-2xl shadow-sm hover:border-elokcyan hover:shadow-lg hover:-translate-y-1 transition flex flex-col items-center text-center"><div class="w-12 h-12 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center mb-3 text-xl">📄</div><span class="font-bold text-gray-700 text-xs">Laporan</span></a>
                             <a href="{{ url_for('settings') }}" class="bg-white border border-gray-200 p-4 rounded-2xl shadow-sm hover:border-elokcyan hover:shadow-lg hover:-translate-y-1 transition flex flex-col items-center text-center"><div class="w-12 h-12 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center mb-3 text-xl">⚙️</div><span class="font-bold text-gray-700 text-xs">Setting</span></a>
                         </div>
                     </div>
                 {% else %}
-                    <div class="max-w-7xl mx-auto">
-                        {% block content %}{% endblock %}
-                    </div>
+                    <div class="max-w-7xl mx-auto">{% block content %}{% endblock %}</div>
                 {% endif %}
             </div>
         </div>
@@ -179,20 +132,48 @@
 
     <script>
         const sidebar = document.getElementById('sidebar'); const overlay = document.getElementById('mobileOverlay'); const body = document.body;
-        function toggleSidebar() {
-            const isClosed = sidebar.classList.contains('-translate-x-[150%]'); 
-            if (isClosed) {
-                sidebar.classList.remove('-translate-x-[150%]');
-                overlay.classList.remove('hidden');
-                body.classList.add('menu-open');
-            } else {
-                sidebar.classList.add('-translate-x-[150%]');
-                overlay.classList.add('hidden');
-                body.classList.remove('menu-open');
-            }
-        }
+        function toggleSidebar() { if(sidebar.classList.contains('-translate-x-[150%]')){sidebar.classList.remove('-translate-x-[150%]');overlay.classList.remove('hidden');body.classList.add('menu-open');}else{sidebar.classList.add('-translate-x-[150%]');overlay.classList.add('hidden');body.classList.remove('menu-open');} }
         document.querySelectorAll('nav a').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth < 1024) toggleSidebar(); }); });
-    </script>
 
+        function updateClock() {
+            const now = new Date();
+            const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+            const clock = document.getElementById('realtimeClock');
+            if (clock) clock.innerText = now.toLocaleDateString('id-ID', options).replace('.', ':');
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        {% if content_only and chart_labels %}
+        const ctx = document.getElementById('salesChart');
+        if (ctx) {
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: JSON.parse('{{ chart_labels | safe }}'),
+                    datasets: [{
+                        label: 'Omset',
+                        data: JSON.parse('{{ chart_data | safe }}'),
+                        borderColor: '#00e5ff',
+                        backgroundColor: 'rgba(0, 229, 255, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#0a0a0a',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#f3f4f6' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+        {% endif %}
+    </script>
 </body>
 </html>

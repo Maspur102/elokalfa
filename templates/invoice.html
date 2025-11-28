@@ -13,6 +13,9 @@
 <body onload="window.print()">
 
     <div class="text-center mb-4 border-b-2 border-dashed border-gray-400 pb-2">
+        {% if info and info.logo_filename %}
+            <img src="{{ url_for('static', filename='uploads/' + info.logo_filename) }}" class="w-16 h-16 mx-auto mb-2 grayscale" alt="Logo">
+        {% endif %}
         <h1 class="text-xl font-bold uppercase">{{ info.nama_toko if info else "ELOK ALFA" }}</h1>
         <p class="text-xs">{{ info.alamat }}</p>
         <p class="text-xs">Telp: {{ info.telepon }}</p>
@@ -34,15 +37,29 @@
     </div>
 
     <div class="text-sm font-bold">
+        {% if trx.discount > 0 %}
+            <div class="flex justify-between mb-1 text-xs"><span>Subtotal</span><span>Rp {{ "{:,.0f}".format(trx.total_bayar + trx.discount) }}</span></div>
+            <div class="flex justify-between mb-1 text-xs"><span>Diskon</span><span>- Rp {{ "{:,.0f}".format(trx.discount) }}</span></div>
+            <div class="border-b border-dashed border-gray-400 mb-1"></div>
+        {% endif %}
+
         <div class="flex justify-between mb-1"><span>TOTAL</span><span>Rp {{ "{:,.0f}".format(trx.total_bayar) }}</span></div>
         <div class="flex justify-between text-xs font-normal"><span>Metode</span><span>{{ trx.payment_method }}</span></div>
         <div class="flex justify-between text-xs font-normal"><span>Bayar</span><span>Rp {{ "{:,.0f}".format(trx.uang_diterima) }}</span></div>
         <div class="flex justify-between text-xs font-normal"><span>Kembali</span><span>Rp {{ "{:,.0f}".format(trx.kembalian) }}</span></div>
     </div>
 
+    {% if trx.note %}
+    <div class="mt-2 pt-2 border-t border-dashed border-gray-300">
+        <p class="text-xs font-bold">Catatan:</p>
+        <p class="text-xs italic">{{ trx.note }}</p>
+    </div>
+    {% endif %}
+
     <div class="text-center mt-6 pt-2 border-t border-gray-300 text-xs">
         <p>Terima Kasih</p>
         <p>Barang yang dibeli tidak dapat ditukar</p>
+        <p class="mt-2 text-[10px] text-gray-400">Powered by Elok Alfa POS</p>
     </div>
 
     <div class="mt-8 text-center no-print">
